@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="da">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>googlesheet</title>
+    <style>
+        .person {
+            border: 1px solid silver;
+            padding: 20px;
+        }
+
+        img {
+            width: 100%;
+
+        }
+
+        section {
+            width: 80vw;
+            margin: 1vw auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-gap: 1rem;
+
+            /*  */
+        }
+    </style>
+</head>
+
+<body>
+    <section id="person-liste"></section>
+
+    <template>
+        <article class="person">
+            <h2> </h2>
+            <a class="github"> </a>
+            <img src="" alt="">
+        </article>
+    </template>
+
+
+    <script>
+        let personer = [];
+
+        document.addEventListener("DOMContentLoaded", start);
+
+        function start() {
+            hentJson();
+        }
+
+        async function hentJson() {
+            const jsonURL = "https://spreadsheets.google.com/feeds/list/1Xge7slZ9dEOTCn1Yxl3OE4xgvrXOL8Y_iu3WN1yGB1U/od6/public/values?alt=json";
+            const response = await fetch(jsonURL);
+            console.log(response);
+            personer = await response.json();
+            console.log(personer);
+
+            visJson();
+        }
+
+        function visJson() {
+            const temp = document.querySelector("template").content;
+            const dest = document.querySelector("#person-liste");
+            console.log(temp);
+
+            personer.feed.entry.forEach((person, i) => {
+                const klon = temp.cloneNode(true);
+
+
+                klon.querySelector("h2").textContent = person.gsx$navn.$t;
+                klon.querySelector("a").textContent = "github.com/" +
+                    person.gsx$github.$t;
+                klon.querySelector("img").src = person.gsx$billede.$t;
+                klon.querySelector("img").alt = "Billede af " + person.gsx$navn.$t;
+
+                dest.appendChild(klon);
+            });
+        }
+    </script>
+</body>
+
+</html>
