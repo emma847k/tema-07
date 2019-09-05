@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="da">
+
+<head>
+    <meta charset="UTF-8">
+<title>babuskha</title>
+<style>
+    body {
+        background-color: #FEEDDF;
+    }
+
+    h1 {
+        font-size: 3.5em;
+        text-transform: uppercase;
+        font-family: sans-serif;
+        color: #54514B;
+        margin: 3vw 0vw 0vw;
+    }
+
+    h2 {
+        font-family: sans-serif;
+        color: #54514B;
+    }
+
+    p {
+        font-family: sans-serif;
+        color: #54514B;
+    }
+
+    #landing {
+
+        display: flex;
+        flex-direction: column;
+        align-content: center;
+        padding: 4vw 35vw 1vw 32vw;
+        align-items: center;
+    }
+
+    nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-content: center;
+        margin: 3vw 15vw;
+    }
+
+    button {
+        text-align: center;
+        cursor: pointer;
+        height: 110px;
+        width: 110px;
+        border-radius: 50%;
+        flex-grow: none;
+        flex-basis: none;
+
+        border: none;
+        background-color: #C29034;
+        color: #015C54;
+        font-size: 1.1em;
+    }
+
+    .hide {
+        display: none;
+    }
+
+    template {
+        border: none;
+    }
+
+    article {
+        background-color: #E0A39A;
+
+    }
+
+    .ret {
+        padding: 1vw;
+    }
+
+    img {
+        width: 100%;
+    }
+
+    #liste img {
+        width: 100%;
+        filter: grayscale(100%);
+    }
+
+    #liste {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-gap: 2vw;
+        margin: 0vw 5vw;
+    }
+
+    #detalje {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(224, 163, 154, 0.6);
+        overflow: scroll;
+    }
+
+    #detalje .luk {
+        position: fixed;
+        top: 0;
+        right: 0;
+        font: 4em;
+        cursor: pointer;
+    }
+
+    #detalje .ret {
+        width: 60vw;
+        min-height: 60vh;
+        margin: 2em auto;
+        padding: 1em 4em;
+
+        background: #015C54;
+    }
+
+    #detalje h2,
+    #detalje p {
+        color: #C29034;
+    }
+
+    .valgt {
+        background-color: #E0A39A;
+    }
+</style>
+</head>
+
+<body>
+
+    <section id="landing">
+        <div class="first_pic">
+            <div class="pic">
+                <img src="logo.png">
+            </div>
+        </div>
+
+        <h1>BABUSKHA</h1>
+    </section>
+
+    <nav>
+        <button data-kategori="alle" class="valgt">Alle</button>
+        <button data-kategori="forretter">forretter</button>
+        <button data-kategori="hovedretter">hovedretter</button>
+        <button data-kategori="desserter">desserter</button>
+        <button data-kategori="drikkevarer">drikkevarer</button>
+        <button data-kategori="sideorders">sideorders</button>
+    </nav>
+
+    <section id="liste"></section>
+
+    <section id="detalje" class="hide">
+        <article class="ret">
+            <button class="luk">X</button>
+            <h2></h2>
+            <img src="" alt="">
+            <p class="lang"></p>
+        </article>
+    </section>
+
+    <template>
+        <article class="ret">
+            <h2 class="navn"></h2>
+            <img src="" alt="" class="billede">
+            <p class="kort"></p>
+        </article>
+    </template>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", start);
+        const url = `https://spreadsheets.google.com/feeds/list/17Dd7DvkPaFamNUdUKlrFgnH6POvBJXac7qyiS6zNRw0/od6/public/values?alt=json`;
+        let retter;
+        let filter = "alle";
+
+        // første funktion der kaldes efter DOM er loaded
+        function start() {
+            const filterKnapper = document.querySelectorAll("nav button");
+            filterKnapper.forEach(knap => knap.addEventListener("click", filtrerRetter));
+
+            loadData();
+        }
+        // funktion der filtrerer personer (json)
+        function filtrerRetter() {
+            filter = this.dataset.kategori; // sæt variabel "filter" til aktuel værdi
+            document.querySelector(".valgt").classList.remove("valgt"); // fjern klassen valgt fra aktuel knap
+            this.classList.add("valgt") // marker den nyvalgte knap
+            vis(); // kald funktionen vis igen med nyt filter
+        }
+        // funktion der henter data fra Google sheet (via url)
+        async function loadData() {
+            const response = await fetch(url);
+            retter = await response.json();
+            vis();
+        }
+        //funktion der viser personer i liste view
+        function vis() {
+            const dest = document.querySelector("#liste"); // container til articles med en person
+            const skabelon = document.querySelector("template").content; // select indhold af html skabelon (article)
+            dest.textContent = "";
+            retter.feed.entry.forEach(ret => { // loop igennem json (personer)
+                if (ret.gsx$kategori.$t == filter || filter == "alle") { // tjek hvilket køn personen har og sammenlign med filter eller vis alle
+                    const klon = skabelon.cloneNode(true);
+                    klon.querySelector(".navn").textContent = ret.gsx$navn.$t;
+                    klon.querySelector(".billede").src = "/img" + "/small/" + ret.gsx$billede.$t + "-sm.jpg";
+                    klon.querySelector(".kort").textContent = ret.gsx$kort.$t;
+                    klon.querySelector(".ret").addEventListener("click", () => {
+                        visDetalje(ret);
+                    })
+                    dest.appendChild(klon);
+                }
+            })
+        }
+
+        function visDetalje(ret) {
+            console.log(ret)
+            document.querySelector("#detalje").classList.remove("hide");
+            document.querySelector("#detalje .luk").addEventListener("click", skjulDetalje);
+
+            document.querySelector("#detalje h2").textContent = ret.gsx$navn.$t;
+            document.querySelector("#detalje img").src = "/img" + "/large/" + ret.gsx$billede.$t + ".jpg";
+            document.querySelector("#detalje p").textContent = ret.gsx$lang.$t;
+
+        }
+
+        function skjulDetalje() {
+            document.querySelector("#detalje").classList.add("hide");
+            console.log(this)
+        }
+    </script>
+</body>
+
+</html>
