@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="da">
+
+<head>
+    <meta charset="UTF-8">
+    <title>babuskha</title>
+    <style>
+        body {
+            background-color: #FEEDDF;
+        }
+
+        h1 {
+            font-size: 3.5em;
+            text-transform: uppercase;
+            font-family: sans-serif;
+            color: #54514B;
+            margin: 3vw 0vw 0vw;
+        }
+
+        h2 {
+            font-family: sans-serif;
+            color: #54514B;
+        }
+
+        p {
+            font-family: sans-serif;
+            color: #54514B;
+        }
+
+        #landing {
+
+            display: flex;
+            flex-direction: column;
+            align-content: center;
+            padding: 4vw 35vw 1vw 32vw;
+            align-items: center;
+        }
+
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-content: center;
+            margin: 3vw 15vw;
+        }
+
+        button {
+            text-align: center;
+            cursor: pointer;
+            height: 110px;
+            width: 110px;
+            border-radius: 50%;
+            flex-grow: none;
+            flex-basis: none;
+
+            border: none;
+            background-color: #C29034;
+            color: #015C54;
+            font-size: 1.1em;
+        }
+
+
+        template {
+            border: none;
+        }
+
+        article {
+            background-color: #E0A39A;
+
+        }
+
+        .ret {
+            padding: 1vw;
+        }
+
+        img {
+            width: 100%;
+        }
+
+        #liste img {
+            width: 100%;
+            filter: grayscale(100%);
+        }
+
+        #liste {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-gap: 2vw;
+            margin: 0vw 5vw;
+        }
+
+        .valgt {
+            background-color: #E0A39A;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <section id="landing">
+        <div class="first_pic">
+            <div class="pic">
+                <img src="logo.png">
+            </div>
+        </div>
+
+        <h1>BABUSKHA</h1>
+    </section>
+
+    <nav>
+        <button data-kategori="alle" class="valgt">Alle</button>
+        <button data-kategori="forretter">forretter</button>
+        <button data-kategori="hovedretter">hovedretter</button>
+        <button data-kategori="desserter">desserter</button>
+        <button data-kategori="drikkevarer">drikkevarer</button>
+        <button data-kategori="sideorders">sideorders</button>
+    </nav>
+
+    <section id="liste"></section>
+
+
+    <template>
+        <article class="ret">
+            <h2 class="navn"></h2>
+            <img src="" alt="" class="billede">
+            <p class="kort"></p>
+        </article>
+    </template>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", start);
+        const url = `https://spreadsheets.google.com/feeds/list/17Dd7DvkPaFamNUdUKlrFgnH6POvBJXac7qyiS6zNRw0/od6/public/values?alt=json`;
+        let retter;
+        let filter = "alle";
+
+        // første funktion der kaldes efter DOM er loaded
+        function start() {
+            const filterKnapper = document.querySelectorAll("button");
+            filterKnapper.forEach(knap => knap.addEventListener("click", filtrerRetter));
+
+            loadData();
+        }
+        // funktion der filtrerer personer (json)
+        function filtrerRetter() {
+            filter = this.dataset.kategori; // sæt variabel "filter" til aktuel værdi
+            document.querySelector(".valgt").classList.remove("valgt"); // fjern klassen valgt fra aktuel knap
+            this.classList.add("valgt") // marker den nyvalgte knap
+            vis(); // kald funktionen vis igen med nyt filter
+        }
+        // funktion der henter data fra Google sheet (via url)
+        async function loadData() {
+            const response = await fetch(url);
+            retter = await response.json();
+            vis();
+        }
+
+        function vis() {
+            const dest = document.querySelector("#liste"); // container til articles med en person
+            const skabelon = document.querySelector("template").content; // select indhold af html skabelon (article)
+            dest.textContent = "";
+            retter.feed.entry.forEach(ret => { // loop igennem json (personer)
+                if (ret.gsx$kategori.$t == filter || filter == "alle") { // tjek hvilket køn personen har og sammenlign med filter eller vis alle
+                    const klon = skabelon.cloneNode(true);
+                    klon.querySelector(".navn").textContent = ret.gsx$navn.$t;
+                    klon.querySelector(".billede").src = "/img" + "/small/" + ret.gsx$billede.$t + "-sm.jpg";
+                    klon.querySelector(".kort").textContent = ret.gsx$kort.$t;
+                    console.log(vis)
+
+                    dest.appendChild(klon);
+                    dest.lastElementChild.addEventListener("click", () => {
+                        location.href = `detalje.html?id=${ret.gsx$id.$t}`;
+                    })
+                }
+            })
+        }
+
+    </script>
+</body>
+
+</html>
